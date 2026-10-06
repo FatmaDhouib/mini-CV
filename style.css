@@ -1,0 +1,197 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f6f8;
+    color: #333;
+    line-height: 1.6;
+}
+
+.cv-container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: #ffffff;
+    padding: 45px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+    padding-bottom: 25px;
+    border-bottom: 3px solid #222;
+}
+
+.header h1 {
+    font-size: 38px;
+    margin-bottom: 5px;
+    color: #222;
+}
+
+.header h2 {
+    font-size: 21px;
+    font-weight: normal;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.header > div:first-child p {
+    color: #666;
+}
+
+.contact {
+    text-align: right;
+    font-size: 14px;
+}
+
+.contact p {
+    margin-bottom: 5px;
+}
+
+a {
+    color: #1f5f8b;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Sections */
+
+section {
+    margin-top: 30px;
+}
+
+section h3 {
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #222;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 7px;
+    margin-bottom: 15px;
+}
+
+/* Experience and education */
+
+article {
+    margin-bottom: 20px;
+}
+
+.experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 20px;
+}
+
+.experience-header h4,
+article h4 {
+    font-size: 17px;
+    color: #222;
+}
+
+.experience-header span {
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
+}
+
+.company {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 7px;
+}
+
+ul {
+    margin-left: 20px;
+}
+
+li {
+    margin-bottom: 4px;
+}
+
+/* Skills */
+
+.skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.skills span {
+    padding: 7px 12px;
+    background: #eeeeee;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Footer */
+
+footer {
+    margin-top: 35px;
+    padding-top: 15px;
+    border-top: 1px solid #ccc;
+    text-align: center;
+    font-size: 13px;
+    color: #777;
+}
+
+/* Responsive design */
+
+@media (max-width: 700px) {
+
+    .cv-container {
+        margin: 15px;
+        padding: 25px;
+    }
+
+    .header {
+        flex-direction: column;
+    }
+
+    .contact {
+        text-align: left;
+    }
+
+    .experience-header {
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .experience-header span {
+        white-space: normal;
+    }
+
+    .header h1 {
+        font-size: 30px;
+    }
+}
+
+/* Print */
+
+@media print {
+
+    body {
+        background: white;
+    }
+
+    .cv-container {
+        margin: 0;
+        padding: 20px;
+        box-shadow: none;
+    }
+
+    a {
+        color: black;
+    }
+}
