@@ -1,0 +1,7 @@
+services:
+  cv:
+    image: cv-docker
+    container_name: cv-container
+    ports:
+      - "8000:80"
+    restart: unless-stopped
