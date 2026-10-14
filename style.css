@@ -259,6 +259,15 @@ header {
 .project-card p {
     color: #94a3b8;
 }
+.project-technologies {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #38bdf8;
+}
+
+.project-technologies strong {
+    color: #f8fafc;
+}
 
 
 /* ================================
