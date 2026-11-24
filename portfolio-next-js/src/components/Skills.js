@@ -1,7 +1,8 @@
+import { getSkills } from "@/lib/api";
 
-import skills from "@/data/skills";
+export default async function Skills() {
+  const skills = await getSkills();
 
-export default function Skills() {
   return (
     <section id="skills" className="section alternate-section">
       <div className="section-header">

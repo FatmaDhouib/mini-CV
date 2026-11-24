@@ -1,18 +1,15 @@
+export const instant = false;
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import projects from "@/data/projects";
-
-export function generateStaticParams() {
-  return projects.map((project) => ({
-    slug: project.slug,
-  }));
-}
+import { getProjects } from "@/lib/api";
 
 export default async function ProjectDetailPage({ params }) {
   const { slug } = await params;
+
+  const projects = await getProjects();
 
   const project = projects.find((item) => item.slug === slug);
 

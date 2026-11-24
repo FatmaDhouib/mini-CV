@@ -444,3 +444,381 @@ The application is available locally at:
 **Project:** DevSecOps Portfolio
 **Framework:** Next.js and React
 **CI/CD:** Jenkins
+
+# Activity 3 — Ansible, Express API and Docker
+
+## 20. Activity Overview
+
+Activity 3 extends the Next.js portfolio by introducing configuration management, a separate REST API, environment-based configuration, and containerized application deployment.
+
+The objectives are:
+
+- Configure a managed Ubuntu server using Ansible.
+- Automate Linux package and Docker installation.
+- Develop an independent REST API using Node.js and Express.
+- Expose profile, project, skill, and health-check endpoints.
+- Retrieve portfolio data from the API instead of local JavaScript data files.
+- Configure the API URL through environment variables.
+- Build separate Docker images for the frontend and API.
+- Orchestrate both services using Docker Compose.
+
+## 21. Ansible Infrastructure Automation
+
+Ansible is installed on the administration VM and used to configure a separate Ubuntu managed node over SSH.
+
+### Lab architecture
+
+| Component | Role |
+|---|---|
+| `ubuntu26` | Ansible control node |
+| `ubuntu-lab` | Managed Ubuntu node |
+| SSH | Remote administration |
+| Ansible | Configuration management |
+| APT | Package installation |
+
+The managed node is defined in:
+
+    ansible/inventory.ini
+
+Inventory configuration:
+
+    [managed]
+    ubuntu-lab ansible_host=172.20.117.91 ansible_user=fatma ansible_python_interpreter=/usr/bin/python3
+
+The address may change if the VM network configuration changes.
+
+### Ansible configuration
+
+The project configuration is stored in:
+
+    ansible/ansible.cfg
+
+It defines the inventory, SSH user, private key, host-key checking, Python interpreter discovery, and privilege escalation settings.
+
+The managed Ubuntu system uses `sudo-rs`. The configuration uses the compatible classic sudo executable:
+
+    become_exe = /usr/bin/sudo.ws
+
+Privilege escalation is requested when executing administrative playbooks. The sudo password is supplied interactively rather than configuring passwordless sudo.
+
+### Connectivity verification
+
+From the Ansible directory:
+
+    cd ansible
+
+Verify inventory:
+
+    ansible-inventory --list
+
+Test SSH connectivity:
+
+    ansible all -m ping
+
+The managed node returned:
+
+    ubuntu-lab | SUCCESS => {"changed": false, "ping": "pong"}
+
+### Package installation playbook
+
+File:
+
+    ansible/playbooks/install-package.yml
+
+This playbook updates the APT package cache, ensures curl is installed, and verifies the installed version.
+
+Execute:
+
+    cd ansible
+
+    ansible-playbook playbooks/install-package.yml --ask-become-pass
+
+### Docker installation playbook
+
+File:
+
+    ansible/playbooks/install-docker.yml
+
+This playbook installs Ubuntu's `docker.io` package, enables and starts the Docker service, and verifies the Docker version.
+
+Execute:
+
+    ansible-playbook playbooks/install-docker.yml --ask-become-pass
+
+The managed node successfully installed Docker Engine and executed the `hello-world` container.
+
+## 22. Express REST API
+
+The independent backend application is located in:
+
+    api/
+
+Technology stack:
+
+| Technology | Purpose |
+|---|---|
+| Node.js 22 | JavaScript runtime |
+| Express 5 | HTTP server and REST API |
+| JSON | Portfolio data storage |
+| npm | Dependency management |
+
+The API is configured through:
+
+    api/package.json
+    api/package-lock.json
+
+The application entry point is:
+
+    api/server.js
+
+### API data structure
+
+The API separates its data into JSON files:
+
+    api/data/
+    ├── profile.json
+    ├── projects.json
+    └── skills.json
+
+### REST endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/health` | API health status |
+| GET | `/api/profile` | Portfolio profile |
+| GET | `/api/projects` | Portfolio projects |
+| GET | `/api/skills` | Technical skills |
+
+Unknown API endpoints return HTTP 404.
+
+### API verification
+
+The API was tested independently before integration with the frontend.
+
+The following endpoints returned HTTP 200:
+
+    /api/health
+    /api/profile
+    /api/projects
+    /api/skills
+
+The projects endpoint returned four project records, and the skills endpoint returned seven skill records.
+
+## 23. Next.js Frontend and API Integration
+
+The frontend remains in:
+
+    portfolio-next-js/
+
+A shared API client was introduced:
+
+    portfolio-next-js/src/lib/api.js
+
+It provides the following functions:
+
+- `getProfile()` retrieves portfolio profile data.
+- `getProjects()` retrieves project data.
+- `getSkills()` retrieves technical skill data.
+
+The frontend uses asynchronous server-side data retrieval.
+
+The Projects and Skills components, project listing page, and project detail page retrieve their data from the Express API.
+
+The previous local data files were removed:
+
+    portfolio-next-js/src/data/projects.js
+    portfolio-next-js/src/data/skills.js
+
+The API is now the source of truth for the project and skill datasets.
+
+### Runtime configuration
+
+The frontend reads the API base URL from:
+
+    process.env.API_URL
+
+The local development configuration is:
+
+    portfolio-next-js/.env.local
+
+Its value is:
+
+    API_URL=http://localhost:3001
+
+The local environment file is ignored by Git.
+
+The project provides a tracked environment template:
+
+    .env.example
+
+Example configuration:
+
+    API_URL=http://localhost:3001
+    PORT=3001
+
+The API URL is configured through an environment variable rather than hardcoded into individual components. This allows the same frontend code to communicate with different API addresses in local development, testing, and containerized deployment.
+
+For Docker Compose, the frontend uses the internal service address:
+
+    API_URL=http://api:3001
+
+The `api` hostname is resolved through Docker Compose's internal network.
+
+## 24. Frontend Docker Image
+
+The frontend Dockerfile is:
+
+    portfolio-next-js/Dockerfile
+
+It uses a multi-stage Docker build:
+
+1. Dependencies stage: installs dependencies using `npm ci`.
+2. Builder stage: builds the production Next.js application.
+3. Runner stage: prepares the production runtime and starts Next.js.
+
+The image uses Node.js 22 on Debian Bookworm Slim.
+
+The frontend image was built using:
+
+    docker build -t devsecops-portfolio:activity-03 ./portfolio-next-js
+
+The image exposes container port:
+
+    3000
+
+The frontend `.dockerignore` excludes dependencies, generated Next.js build files, Git metadata, and local environment files from the build context.
+
+## 25. API Docker Image
+
+The API Dockerfile is:
+
+    api/Dockerfile
+
+It uses Node.js 22 on Debian Bookworm Slim.
+
+The Docker build installs production dependencies only:
+
+    npm ci --omit=dev
+
+It copies the API entry point and JSON data files into the image.
+
+The image exposes container port:
+
+    3001
+
+Build the API image:
+
+    docker build -t devsecops-api:activity-03 ./api
+
+The API `.dockerignore` excludes local dependencies, Git metadata, environment files, and unnecessary build files.
+
+### Docker image inventory
+
+| Image | Tag | Approximate size |
+|---|---|---:|
+| Frontend | `devsecops-portfolio:activity-03` | 1.15 GB |
+| API | `devsecops-api:activity-03` | 335 MB |
+
+Both images were built and inspected successfully.
+
+## 26. Docker Compose Orchestration
+
+The two services are defined in a dedicated Compose file:
+
+    docker-compose.activity-03.yaml
+
+A separate filename preserves the original static portfolio Compose configuration.
+
+### Services
+
+| Service | Container name | Container port |
+|---|---|---:|
+| Frontend | `devsecops-portfolio` | 3000 |
+| API | `devsecops-api` | 3001 |
+
+The API has a health check that requests:
+
+    http://127.0.0.1:3001/api/health
+
+The frontend uses `depends_on` with the `service_healthy` condition. This ensures the API passes its health check before the frontend starts.
+
+### Start the application
+
+From the repository root:
+
+    docker compose -f docker-compose.activity-03.yaml up -d
+
+Check service status:
+
+    docker compose -f docker-compose.activity-03.yaml ps
+
+View service logs:
+
+    docker compose -f docker-compose.activity-03.yaml logs
+
+Stop the application:
+
+    docker compose -f docker-compose.activity-03.yaml down
+
+### Network communication
+
+Docker Compose creates a shared network for both services.
+
+The frontend accesses the API through:
+
+    http://api:3001
+
+This internal address is independent of the host port mappings.
+
+The current host mappings are:
+
+| Application | Host URL | Container address |
+|---|---|---|
+| Frontend | `http://localhost:3003` | `frontend:3000` |
+| API | `http://localhost:3002` | `api:3001` |
+
+The host ports 3000 and 3001 were already occupied by local validation servers, so alternative host ports were selected. The internal container ports remain unchanged.
+
+## 27. Activity 3 Verification Summary
+
+| Requirement | Result |
+|---|---|
+| Ansible installed on control node | Verified |
+| Managed node SSH connectivity | Passed |
+| Ansible inventory | Verified |
+| Linux package installation playbook | Passed |
+| Docker installation playbook | Passed |
+| Docker service on managed node | Active |
+| Express API created | Verified |
+| API health endpoint | HTTP 200 |
+| API profile endpoint | HTTP 200 |
+| API projects endpoint | HTTP 200 |
+| API skills endpoint | HTTP 200 |
+| Frontend API client | Implemented |
+| Projects retrieved from API | Verified |
+| Skills retrieved from API | Verified |
+| Frontend Docker image | Built |
+| API Docker image | Built |
+| Docker Compose configuration | Valid |
+| API container health check | Healthy |
+| Frontend container | Running |
+| Frontend-to-API Docker network communication | HTTP 200 |
+| Frontend homepage | HTTP 200 |
+| Projects page | HTTP 200 |
+| Project detail page | HTTP 200 |
+
+---
+
+**Activity:** 3 — Ansible, Express API and Docker
+
+**Project:** DevSecOps Portfolio
+
+**Configuration management:** Ansible
+
+**Backend:** Node.js and Express
+
+**Frontend:** Next.js and React
+
+**Containerization:** Docker
+
+**Orchestration:** Docker Compose

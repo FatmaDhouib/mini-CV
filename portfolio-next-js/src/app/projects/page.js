@@ -1,10 +1,13 @@
+export const instant = false;
 
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import projects from "@/data/projects";
+import { getProjects } from "@/lib/api";
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects = await getProjects();
+
   return (
     <>
       <Header />

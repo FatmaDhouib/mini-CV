@@ -1,3 +1,5 @@
+export const instant = false;
+
 
 import Header from "@/components/Header";
 import About from "@/components/About";

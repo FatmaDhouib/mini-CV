@@ -1,0 +1,39 @@
+services:
+  api:
+    image: devsecops-api:activity-03
+    build:
+      context: ./api
+    container_name: devsecops-api
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+    ports:
+      - "3002:3001"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3001/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  frontend:
+    image: devsecops-portfolio:activity-03
+    build:
+      context: ./portfolio-next-js
+    container_name: devsecops-portfolio
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:3001
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "3003:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
