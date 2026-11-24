@@ -256,3 +256,191 @@ Replace the IP address if the Hyper-V Default Switch assigns a different address
 **Project:** DevSecOps Portfolio
 
 **Version control:** Git and GitHub
+
+# Activity 2 — Next.js and Jenkins CI
+
+## 12. Activity Overview
+
+Activity 2 extends the original DevSecOps portfolio by introducing a Next.js implementation and a Jenkins continuous integration pipeline.
+
+The objectives are:
+
+- Rebuild the portfolio using Next.js and React.
+- Organize the interface into reusable components.
+- Separate project and skill information from presentation logic.
+- Implement dedicated project listing and detail routes.
+- Automate source checkout, dependency installation, and production builds with Jenkins.
+
+## 13. Next.js Application
+
+The Next.js application is located in:
+
+    portfolio-next-js/
+
+Technology stack:
+
+| Technology | Version |
+|---|---|
+| Next.js | 16.4.6 |
+| React | 19.3.0 |
+| Node.js | 22.22.1 |
+| npm | 9.2.0 |
+| ESLint | 9.x |
+
+The application uses the Next.js App Router and JavaScript.
+
+## 14. Component Architecture
+
+The interface is organized into reusable components.
+
+| Component | Responsibility |
+|---|---|
+| Header | Navigation and branding |
+| About | Professional introduction |
+| Skills | Technical skills |
+| Projects | Dynamic project cards |
+| Experience | Professional experience |
+| Contact | Contact information |
+| Footer | Page footer |
+
+Source location:
+
+    portfolio-next-js/src/components/
+
+The main page composes these components to build the portfolio interface.
+
+## 15. Data Separation
+
+Project and skill information is maintained in separate files.
+
+    portfolio-next-js/src/data/
+    ├── projects.js
+    └── skills.js
+
+The project data uses JavaScript objects containing a slug, title, description, technologies, and extended details.
+
+The Projects component imports the project data and generates project cards dynamically.
+
+This approach separates application data from presentation logic and simplifies future updates.
+
+## 16. Project Routing
+
+The application implements dedicated project routes using the Next.js App Router.
+
+| Route | Purpose |
+|---|---|
+| `/` | Portfolio homepage |
+| `/projects` | Complete project listing |
+| `/projects/[slug]` | Individual project details |
+
+The project detail page uses `generateStaticParams()` to generate pages for known project slugs.
+
+Unknown slugs are handled using `notFound()`.
+
+The following routes were tested against the production server:
+
+| Test | HTTP status |
+|---|---:|
+| Homepage | 200 |
+| Project listing | 200 |
+| Kubernetes Cluster Deployment | 200 |
+| Task Manager Application | 200 |
+| Jenkins CI/CD Pipeline | 200 |
+| DevSecOps Portfolio | 200 |
+| Invalid project slug | 404 |
+
+## 17. Jenkins Continuous Integration Pipeline
+
+A declarative Jenkins pipeline is defined in the repository root:
+
+    Jenkinsfile
+
+The pipeline consists of three stages.
+
+### Stage 1 — Checkout
+
+The `checkout scm` step retrieves the source code from the repository and branch configured in the Jenkins job.
+
+### Stage 2 — Install Dependencies
+
+Jenkins enters the Next.js application directory:
+
+    portfolio-next-js/
+
+It executes:
+
+    npm ci
+
+This installs the dependencies specified by `package-lock.json`.
+
+### Stage 3 — Build Next.js Application
+
+Jenkins executes:
+
+    npm run build
+
+This creates the optimized production build and validates the Next.js application.
+
+### Pipeline requirements
+
+The Jenkins service account must have access to:
+
+- Git.
+- Node.js.
+- npm.
+- The GitHub repository.
+
+The pipeline uses the system Node.js and npm executables available under `/usr/bin`.
+
+Jenkins pipeline execution and GitHub branch integration remain pending verification.
+
+## 18. Local Validation
+
+The following application checks have been completed:
+
+| Validation | Result |
+|---|---|
+| Dependency installation | Completed |
+| ESLint | Passed |
+| Production build | Passed |
+| Homepage and project listing | Passed |
+| Four project detail routes | Passed |
+| Invalid project route | Passed with HTTP 404 |
+| Production server shutdown | Verified |
+
+## 19. Running the Next.js Application
+
+From the repository root:
+
+    cd portfolio-next-js
+
+Install dependencies:
+
+    npm ci
+
+Run the development server:
+
+    npm run dev
+
+Run linting:
+
+    npm run lint
+
+Build the application:
+
+    npm run build
+
+Start the production server:
+
+    npm run start
+
+The application is available locally at:
+
+    http://localhost:3000
+
+---
+
+**Activity:** 2 — Next.js and Jenkins
+**Project:** DevSecOps Portfolio
+**Framework:** Next.js and React
+**CI/CD:** Jenkins
