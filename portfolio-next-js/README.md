@@ -163,7 +163,7 @@ The pipeline includes:
 
 The pipeline uses the committed `package-lock.json` to install reproducible dependencies.
 
-Jenkins execution results will be documented after the pipeline has been configured and tested.
+The Jenkins job `mini-cv-activity-02` was configured using Pipeline script from SCM and successfully executed all three stages: Checkout, Install Dependencies (`npm ci`), and Build Next.js Application (`npm run build`). Final Jenkins result: SUCCESS.
 
 ## 11. Validation
 

@@ -392,7 +392,7 @@ The Jenkins service account must have access to:
 
 The pipeline uses the system Node.js and npm executables available under `/usr/bin`.
 
-Jenkins pipeline execution and GitHub branch integration remain pending verification.
+The Jenkins job `mini-cv-activity-02` was configured to retrieve the `activity-02-nextjs-jenkins` branch from GitHub. The pipeline executed successfully: Checkout, Install Dependencies (`npm ci`), and Build Next.js Application (`npm run build`). Final Jenkins result: SUCCESS.
 
 ## 18. Local Validation
 
