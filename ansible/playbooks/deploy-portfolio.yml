@@ -1,0 +1,80 @@
+---
+- name: Deploy the Smart DevSecOps Portfolio using Docker Compose
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    project_directory: /vagrant
+    compose_file: docker-compose.activity-03.yaml
+
+  tasks:
+    - name: Update APT package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Docker Engine and Docker Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+        state: present
+
+    - name: Enable and start Docker service
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Verify Docker Engine installation
+      ansible.builtin.command:
+        cmd: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Display Docker Engine version
+      ansible.builtin.debug:
+        msg: "{{ docker_version.stdout }}"
+
+    - name: Verify Docker Compose installation
+      ansible.builtin.command:
+        cmd: docker compose version
+      register: compose_version
+      changed_when: false
+
+    - name: Display Docker Compose version
+      ansible.builtin.debug:
+        msg: "{{ compose_version.stdout }}"
+
+    - name: Build and deploy the portfolio and API
+      ansible.builtin.command:
+        cmd: docker compose -f {{ compose_file }} up -d --build
+        chdir: "{{ project_directory }}"
+      register: compose_deployment
+      changed_when: true
+
+    - name: Display deployment output
+      ansible.builtin.debug:
+        var: compose_deployment.stdout_lines
+
+    - name: Wait for the portfolio to listen on port 3003
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 3003
+        state: started
+        timeout: 180
+
+    - name: Verify portfolio HTTP response
+      ansible.builtin.uri:
+        url: http://127.0.0.1:3003
+        method: GET
+        status_code: 200
+      register: portfolio_response
+      retries: 12
+      delay: 5
+      until: portfolio_response.status == 200
+
+    - name: Report successful portfolio deployment
+      ansible.builtin.debug:
+        msg: "Portfolio deployment succeeded. HTTP status: {{ portfolio_response.status }}"

@@ -207,20 +207,58 @@ Generated dependencies, environment files, logs, and Vagrant state are excluded 
 
 ## 9. Vagrant Infrastructure Automation
 
-The activity introduces Vagrant as a tool for defining and provisioning virtual machines through code.
+This activity uses Vagrant to create and configure an Ubuntu virtual machine automatically through the libvirt/KVM provider, running nested virtualization inside the Ubuntu control VM hosted by Hyper-V.
 
-The repository contains a `Vagrantfile` that defines an Ubuntu virtual machine with:
+### Virtual Machine Configuration
 
-- VM name: `vagrant-ubuntu-lab`
-- Hostname: `vagrant-ubuntu-lab`
-- Private IP: `192.168.56.10`
-- Memory: 2048 MB
-- CPUs: 2
-- Provider: VirtualBox
+| Setting | Configuration |
+|---|---|
+| VM name | `vagrant-ubuntu-lab` |
+| Hostname | `vagrant-ubuntu-lab` |
+| Base box | `cloudsoe/ubuntu-24.04` |
+| Provider | libvirt / KVM |
+| CPUs | 2 |
+| Memory | 1536 MB |
+| Guest project directory | `/vagrant` |
+| Folder synchronization | rsync |
+| Portfolio guest port | 3003 |
+| Portfolio forwarded port | 3004 |
 
-The current lab runs Ubuntu inside Hyper-V. Nested virtualization extensions are not exposed to this guest, so VirtualBox-based VM creation cannot currently be assumed to work.
+The synchronized project directory excludes `.git/`, `.vagrant/`, `node_modules/`, `.next/`, `.env`, and log files.
 
-Consequently, successful Vagrant provisioning, SSH access to the Vagrant-managed VM, and comparison with the manually created VM remain pending verification.
+### Automatic Ansible Provisioning
+
+The Vagrantfile uses the `ansible_local` provisioner to install Ansible inside the guest VM and execute `ansible/playbooks/deploy-portfolio.yml`.
+
+The playbook:
+
+1. Updates the APT package cache.
+2. Installs Docker Engine and the Docker Compose plugin.
+3. Enables and starts Docker.
+4. Verifies Docker and Docker Compose.
+5. Builds and deploys the portfolio frontend and API using `docker-compose.activity-03.yaml`.
+6. Waits for the portfolio on guest port `3003`.
+7. Verifies that the portfolio returns HTTP status `200`.
+
+### Deployment and Verification
+
+Start the deployment with `export VAGRANT_DEFAULT_PROVIDER=libvirt` followed by `vagrant up --provider=libvirt`.
+
+After VM creation, Ansible automatically installs Docker and deploys the portfolio and API. Port forwarding maps guest port `3003` to port `3004` on the Ubuntu control VM.
+
+The deployment was tested by destroying the Vagrant-managed VM and creating it again. The new VM successfully executed the Ansible playbook without manual application deployment.
+
+Verified results:
+
+- Vagrant VM created and running with libvirt/KVM.
+- Ansible installed and executed automatically.
+- Docker Engine and Docker Compose installed.
+- API and frontend images built successfully.
+- API container running and healthy.
+- Portfolio container running.
+- API health endpoint returned `{"status":"ok"}`.
+- Portfolio returned HTTP `200 OK` through the forwarded port.
+- Ansible recap: `ok=13`, `changed=2`, `unreachable=0`, `failed=0`.
 
 ## 10. Verification Summary
 
@@ -238,7 +276,7 @@ Consequently, successful Vagrant provisioning, SSH access to the Vagrant-managed
 | Docker container running | Verified |
 | Portfolio accessible from Windows host | Verified |
 | GitHub SSH authentication | Verified |
-| Vagrant VM provisioning | Pending verification |
+| Vagrant VM provisioning and automatic Ansible deployment | Verified |
 
 ## 11. Useful Application URLs
 
