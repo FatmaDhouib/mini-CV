@@ -483,9 +483,9 @@ The managed node is defined in:
 Inventory configuration:
 
     [managed]
-    ubuntu-lab ansible_host=172.20.117.91 ansible_user=fatma ansible_python_interpreter=/usr/bin/python3
+    ubuntu-lab ansible_host=192.168.50.20 ansible_user=fatma ansible_python_interpreter=/usr/bin/python3
 
-The address may change if the VM network configuration changes.
+The managed node uses a static IP address (192.168.50.20) on the dedicated Hyper-V DevOps-Lab internal network. Its original Default Switch adapter remains enabled for internet access.
 
 ### Ansible configuration
 
