@@ -1,0 +1,19 @@
+# Vagrant generated state
+.vagrant/
+
+# Screenshots excluded from this assignment
+screenshots.7z
+screenshots/
+
+# Node.js dependencies and build output
+node_modules/
+.next/
+dist/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log

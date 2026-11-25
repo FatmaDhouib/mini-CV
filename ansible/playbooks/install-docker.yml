@@ -1,0 +1,31 @@
+---
+- name: Install and configure Docker on managed nodes
+  hosts: managed
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Update APT package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Docker Engine
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+
+    - name: Enable and start Docker service
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Verify Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Display Docker version
+      ansible.builtin.debug:
+        msg: "{{ docker_version.stdout }}"
